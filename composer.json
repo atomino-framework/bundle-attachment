@@ -1,0 +1,16 @@
+{
+    "name": "atomino/attachment",
+    "authors": [
+        {
+            "name": "laborci",
+            "email": "gergely@laborci.hu"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Atomino\\Molecules\\Module\\Attachment\\": "src/Module/",
+            "Atomino\\Molecules\\EntityPlugin\\Attachmentable\\": "src/EntityPlugin/"
+        }
+    }
+}
