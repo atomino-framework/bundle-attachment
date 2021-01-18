@@ -5,6 +5,7 @@ use Atomino\Entity\Model;
 use Atomino\Entity\Plugin\Plugin;
 use Atomino\Molecules\EntityPlugin\Attachmentable\Attributes\AttachmentCollection;
 use Atomino\Molecules\Module\Attachment\AttachmentableInterface;
+use Atomino\Molecules\Module\Attachment\Collection;
 
 #[\Attribute( \Attribute::TARGET_CLASS )]
 class Attachmentable extends Plugin{
@@ -25,7 +26,7 @@ class Attachmentable extends Plugin{
 		$codeWriter->addAttribute("#[RequiredField( '" . $this->field . "', \Atomino\Entity\Field\JsonField::class )]");
 
 		foreach ($collections as $collection){
-			$codeWriter->addAnnotation("@property-read \Atomino\EntityPlugins\Attachment\Module\Collection \$" . $collection->field);
+			$codeWriter->addAnnotation("@property-read \\".Collection::class." \$" . $collection->field);
 			$codeWriter->addCode("protected final function __get" . ucfirst($collection->field) . '(){return $this->getAttachmentCollection("' . $collection->field . '");}');
 		}
 	}
