@@ -60,6 +60,13 @@ class Attachment implements \JsonSerializable{
 
 	public function rename($newName){ $this->storage->rename($this->filename, $newName); }
 
+	public function restrictAccess(){
+		touch($this->path.Application::DIC()->get(Config::class)->restrictedAccessPostfix);
+	}
+
+	public function allowAccess(){
+		file_exists($this->path.Application::DIC()->get(Config::class)->restrictedAccessPostfix) && touch($this->path.Application::DIC()->get(Config::class)->restrictedAccessPostfix);
+	}
 
 	#region property get / set
 	public function getProperties(): array{ return $this->properties; }
