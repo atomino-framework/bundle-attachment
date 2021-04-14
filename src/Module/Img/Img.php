@@ -22,6 +22,7 @@ class Img{
 	private string $pathId;
 	private string $secret;
 
+
 	public function __construct(private Attachment $attachment){
 		$this->file = $this->attachment->file;
 		$config = Application::DIC()->get(Config::class);
@@ -78,12 +79,16 @@ class Img{
 
 	private function img(string $ext): string{
 		$op = $this->operation;
+		if(!is_null($this->attachment->safezone)) $op .= '~'.$this->attachment->safezone;
+		if(!is_null($this->attachment->focus)) $op .= '-'.$this->attachment->focus;
+
 		if ($ext === 'jpg' || $ext === 'webp'){
 			$this->jpegQuality = min(max($this->jpegQuality, 0), 100);
 			$op .= '.' . base_convert(floor($this->jpegQuality / 4), 10, 32);
 		}
-		$url = $this->file->getFilename() . '.' . $op . '.' . $this->pathId;
-		$url = $this->urlBase . '/' . urlencode($url) . '.' . base_convert(crc32($url . '.' . $ext . $this->secret), 10, 32) . '.' . $ext;
+		$url = urlencode($this->file->getFilename()) . '.' . $op . '.' . $this->pathId;
+		$url = $this->urlBase . '/' . $url . '.' . base_convert(crc32($url . '.' . $ext . $this->secret), 10, 32) . '.' . $ext;
+		
 		return $url;
 	}
 

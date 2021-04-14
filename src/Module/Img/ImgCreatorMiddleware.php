@@ -46,9 +46,9 @@ class ImgCreatorMiddleware extends Middleware{
 		#endregion
 
 		if ( !match ( $op['op'] ) {
-			'c' => $this->creator->crop($op['width'], $op['height'], $source, $target, $jpegQuality),
-			'h' => $this->creator->height($op['width'], $op['height'], $source, $target, $jpegQuality),
-			'w' => $this->creator->width($op['width'], $op['height'], $source, $target, $jpegQuality),
+			'c' => $this->creator->crop($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
+			'h' => $this->creator->height($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
+			'w' => $this->creator->width($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
 			's' => $this->creator->scale($op['width'], $op['height'], $source, $target, $jpegQuality),
 			'b' => $this->creator->box($op['width'], $op['height'], $source, $target, $jpegQuality),
 			default => null,
@@ -59,14 +59,25 @@ class ImgCreatorMiddleware extends Middleware{
 
 	#[ArrayShape( ['op' => "string", 'width' => "int", 'height' => "int"] )]
 	private function parseOp(string $op): array{
-		$operation = substr($op, 0, 1);
-		$op = substr($op, 1);
-		$argLength = strlen($op) / 2;
+		preg_match('/(?<op>[a-z])(?<arg>[a-z0-9]*)(~(?<safezone>[a-z0-9]*))?(-(?<focus>[a-z0-9]*))?/', $op, $match);
+		$argLength = strlen($match['arg']) / 2;
 		return [
-			'op'     => $operation,
-			'width'  => (int)base_convert(substr($op, 0, $argLength), 32, 10),
-			'height' => (int)base_convert(substr($op, $argLength), 32, 10),
+			'op'     => $match['op'],
+			'width'  => $this->bc($match['arg'],2)[0],
+			'height' => $this->bc($match['arg'],2)[1],
+			'safezone' => array_key_exists('safezone', $match) ? $this->bc($match['safezone'], 4) : null,
+			'focus' => array_key_exists('focus', $match) ? $this->bc($match['focus'], 2) : null
 		];
+	}
+
+	private function bc($num, $segments = 1){
+		if($segments === 1) return (int)base_convert($num, 36, 10);
+		$len = strlen($num) / $segments;
+		$ret = [];
+		for($i = 0; $i<$segments; $i++){
+			$ret[] = (int)base_convert(substr($num, $i*$len, $len), 36, 10);
+		}
+		return $ret;
 	}
 
 	private function notfound(Response $response){

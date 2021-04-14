@@ -50,7 +50,7 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
 			$file = $this->storage->getAttachment($filename);
 			if ($this->descriptor->maxSize !== 0 && $file->size > $this->descriptor->maxSize) throw new Exception("File size too big. Max allowed: " . $this->descriptor->maxSize);
 			if ($this->descriptor->maxCount !== 0 && count($this->files) >= $this->descriptor->maxCount) throw new Exception("Collection can store only " . $this->descriptor->maxCount . " files");
-			if ($this->descriptor->mimetype !== null && !preg_match($this->descriptor->mimetype, $file->mimetype)) throw new Exception("File mimetype mismatch");
+			if ($this->descriptor->mimetype !== null && !preg_match($this->descriptor->mimetype, $file->mimetype)) throw new Exception("File mimetype mismatch, ".$this->descriptor->mimetype.' expected');
 			$this->files[] = $filename;
 			$this->persist();
 		}
@@ -58,6 +58,11 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
 	public function remove(string $filename){
 		if (( $index = array_search($filename, $this->files) ) !== false){
 			array_splice($this->files, $index, 1);
+			$hasLink = false;
+			foreach ($this->storage->collections as $collection){
+				$hasLink = $hasLink || !is_null($collection->get($filename));
+			}
+			if(!$hasLink) $this->storage->delete($filename);
 			$this->persist();
 		}
 	}
@@ -66,7 +71,11 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
 		$this->begin();
 		if ($serial < 0) $serial = 0;
 		if ($serial > count($this->files)) $serial = count($this->files);
-		$this->remove($filename);
+
+		$oldIndex = array_search($filename, $this->files);
+		if($oldIndex <= $serial) $serial--;
+
+		array_splice($this->files, $oldIndex, 1);
 		array_splice($this->files, $serial, 0, $filename);
 		$this->commit();
 	}

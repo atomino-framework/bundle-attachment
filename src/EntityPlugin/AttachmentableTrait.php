@@ -12,7 +12,8 @@ trait AttachmentableTrait{
 
 	#[EventHandler( Entity::EVENT_ON_LOAD )]
 	protected function AttachmentPlugin_onLoad(){
-		$this->AttachmentPlugin_stored_attachments = $this->{Attachmentable::fetch(static::model())->field};
+		$data = $this->{Attachmentable::fetch(static::model())->field};
+		$this->AttachmentPlugin_stored_attachments = $data === [] ? ['files' => [], 'collections' => []] : $data;
 	}
 
 	#[EventHandler( Entity::EVENT_BEFORE_UPDATE, Entity::EVENT_BEFORE_INSERT )]
