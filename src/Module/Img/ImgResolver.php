@@ -1,24 +1,22 @@
 <?php namespace Atomino\Molecules\Module\Attachment\Img;
 
-use Atomino\Core\Application;
 use Atomino\Molecules\Module\Attachment\Config;
-use Atomino\Responder\Middleware;
 use JetBrains\PhpStorm\ArrayShape;
-use Symfony\Component\HttpFoundation\Response;
+use function Atomino\dic;
 
-class ImgCreatorMiddleware extends Middleware{
+class ImgResolver{
 
 	public function __construct(private ImgCreatorInterface $creator){ }
 
-	protected function respond(Response $response): Response{
+	public function resolve(string $url):bool{
 
-		$config = Application::DIC()->get(Config::class);
+		$config = dic()->get(Config::class);
 		if (!is_dir($config->imgPath)) mkdir($config->imgPath, 0777, true);
 
-		$uri = explode('/', $this->getRequest()->getRequestUri());
+		$uri = explode('/', $url);
 		$uri = urldecode(array_pop($uri));
 		$target = $config->imgPath . '/' . $uri;
-		if (file_exists($target)) return $this->next($response);
+		if (file_exists($target)) return true;
 
 		#region parse uri
 		$parts = explode('.', $uri);
@@ -36,28 +34,27 @@ class ImgCreatorMiddleware extends Middleware{
 		$path = substr_replace($path, '/', -4, 0);
 		$path = substr_replace($path, '/', -2, 0);
 		$source = realpath($config->path . '/' . $path . '/' . $file);
-		if (!file_exists($source)) return $this->notfound($response);
+		if (!file_exists($source)) return false;
 		#endregion
 
 		#region check hash
 		$url = $file . '.' . $opCode . ( ( $jpegQuality ) ? ( '.' . $jpegQuality ) : ( '' ) ) . '.' . $pathId . '.' . $ext;
 		$newHash = base_convert(crc32($url . $config->imgSecret), 10, 32);
-		if ($newHash != $hash) return $this->notfound($response);
+		if ($newHash != $hash) return false;
 		#endregion
 
-		if ( !match ( $op['op'] ) {
+		$result = match ( $op['op'] ) {
 			'c' => $this->creator->crop($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
 			'h' => $this->creator->height($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
 			'w' => $this->creator->width($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
 			's' => $this->creator->scale($op['width'], $op['height'], $source, $target, $jpegQuality),
 			'b' => $this->creator->box($op['width'], $op['height'], $source, $target, $jpegQuality),
-			default => null,
-		}) return $this->notfound($response);
-
-		return $this->next($response);
+			default => false,
+		};
+		return !($result === false);
 	}
 
-	#[ArrayShape( ['op' => "string", 'width' => "int", 'height' => "int"] )]
+	#[ArrayShape( ['op' => "string", 'width' => "int", 'height' => "int", 'safezone'=>'array', 'focus'=>'array'] )]
 	private function parseOp(string $op): array{
 		preg_match('/(?<op>[a-z])(?<arg>[a-z0-9]*)(~(?<safezone>[a-z0-9]*))?(-(?<focus>[a-z0-9]*))?/', $op, $match);
 		$argLength = strlen($match['arg']) / 2;
@@ -80,9 +77,5 @@ class ImgCreatorMiddleware extends Middleware{
 		return $ret;
 	}
 
-	private function notfound(Response $response){
-		$response->setStatusCode(404);
-		return $response;
-	}
 
 }
