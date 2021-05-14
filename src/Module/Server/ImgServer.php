@@ -13,6 +13,7 @@ use function Atomino\dic;
 class ImgServer extends Handler{
 	public static function route(Router $router) {
 		$attachmentConfig = dic()->get(Config::class);
+
 		$router(method: 'GET', path: $attachmentConfig->imgUrl . '/**')
 			?->pipe(ImgServer::class)
 		     ->pipe(...FileLocator::setup($attachmentConfig->imgPath))

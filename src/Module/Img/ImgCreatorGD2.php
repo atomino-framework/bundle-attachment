@@ -76,8 +76,8 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		return match ($pathInfo['extension']) {
 			'gif' => imagegif($img, $target),
 			'png' => imagepng($img, $target),
-			'jpg' => imagejpeg($img, $target, base_convert($jpegQuality, 32, 10) * 4),
-			'webp' => imagewebp($img, $target, base_convert($jpegQuality, 32, 10) * 4),
+			'jpg' => imagejpeg($img, $target, $jpegQuality),
+			'webp' => imagewebp($img, $target, $jpegQuality),
 			default => false
 		};
 	}

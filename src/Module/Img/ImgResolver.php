@@ -4,11 +4,11 @@ use Atomino\Molecules\Module\Attachment\Config;
 use JetBrains\PhpStorm\ArrayShape;
 use function Atomino\dic;
 
-class ImgResolver{
+class ImgResolver {
 
-	public function __construct(private ImgCreatorInterface $creator){ }
+	public function __construct(private ImgCreatorInterface $creator) { }
 
-	public function resolve(string $url):bool{
+	public function resolve(string $url): bool {
 
 		$config = dic()->get(Config::class);
 		if (!is_dir($config->imgPath)) mkdir($config->imgPath, 0777, true);
@@ -23,7 +23,7 @@ class ImgResolver{
 		$ext = array_pop($parts);
 		$hash = array_pop($parts);
 		$path = $pathId = array_pop($parts);
-		$jpegQuality = ( $ext === 'jpg' || $ext === 'webp' ) ? array_pop($parts) : null;
+		$jpegQuality = array_pop($parts);
 		$opCode = array_pop($parts);
 		$op = $this->parseOp($opCode);
 		#endregion
@@ -33,17 +33,19 @@ class ImgResolver{
 		$path = substr_replace($path, '/', -6, 0);
 		$path = substr_replace($path, '/', -4, 0);
 		$path = substr_replace($path, '/', -2, 0);
-		$source = realpath($config->path . '/' . $path . '/' . $file);
+		$source = ($config->path . $path . '/' . $file);
 		if (!file_exists($source)) return false;
 		#endregion
 
 		#region check hash
-		$url = $file . '.' . $opCode . ( ( $jpegQuality ) ? ( '.' . $jpegQuality ) : ( '' ) ) . '.' . $pathId . '.' . $ext;
-		$newHash = base_convert(crc32($url . $config->imgSecret), 10, 32);
+		$url = $file . '.' . $opCode . (($jpegQuality) ? ('.' . $jpegQuality) : ('')) . '.' . $pathId . '.' . $ext;
+		$newHash = base_convert(crc32($url . $config->imgSecret), 10, 36);
 		if ($newHash != $hash) return false;
 		#endregion
 
-		$result = match ( $op['op'] ) {
+		$jpegQuality = is_null($jpegQuality) ? null : base_convert($jpegQuality, 36, 10) * 4;
+
+		$result = match ($op['op']) {
 			'c' => $this->creator->crop($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
 			'h' => $this->creator->height($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
 			'w' => $this->creator->width($op['width'], $op['height'], $source, $target, $jpegQuality, $op['safezone'], $op['focus']),
@@ -54,25 +56,25 @@ class ImgResolver{
 		return !($result === false);
 	}
 
-	#[ArrayShape( ['op' => "string", 'width' => "int", 'height' => "int", 'safezone'=>'array', 'focus'=>'array'] )]
-	private function parseOp(string $op): array{
+	#[ArrayShape(['op' => "string", 'width' => "int", 'height' => "int", 'safezone' => 'array', 'focus' => 'array'])]
+	private function parseOp(string $op): array {
 		preg_match('/(?<op>[a-z])(?<arg>[a-z0-9]*)(~(?<safezone>[a-z0-9]*))?(-(?<focus>[a-z0-9]*))?/', $op, $match);
 		$argLength = strlen($match['arg']) / 2;
 		return [
-			'op'     => $match['op'],
-			'width'  => $this->bc($match['arg'],2)[0],
-			'height' => $this->bc($match['arg'],2)[1],
+			'op'       => $match['op'],
+			'width'    => $this->bc($match['arg'], 2)[0],
+			'height'   => $this->bc($match['arg'], 2)[1],
 			'safezone' => array_key_exists('safezone', $match) ? $this->bc($match['safezone'], 4) : null,
-			'focus' => array_key_exists('focus', $match) ? $this->bc($match['focus'], 2) : null
+			'focus'    => array_key_exists('focus', $match) ? $this->bc($match['focus'], 2) : null,
 		];
 	}
 
-	private function bc($num, $segments = 1){
-		if($segments === 1) return (int)base_convert($num, 36, 10);
+	private function bc($num, $segments = 1) {
+		if ($segments === 1) return (int)base_convert($num, 36, 10);
 		$len = strlen($num) / $segments;
 		$ret = [];
-		for($i = 0; $i<$segments; $i++){
-			$ret[] = (int)base_convert(substr($num, $i*$len, $len), 36, 10);
+		for ($i = 0; $i < $segments; $i++) {
+			$ret[] = (int)base_convert(substr($num, $i * $len, $len), 36, 10);
 		}
 		return $ret;
 	}

@@ -15,11 +15,12 @@ use Symfony\Component\HttpFoundation\File\File;
  * @property-read int|null $height
  * @property-read string|null $safezone
  * @property-read string|null $focus
+ * @property-read int|null $quality
  * @property-read int $size
  * @property-read File $file
  * @property-read \Atomino\Molecules\Module\Attachment\Storage $storage
  * @property-read bool $isImage
- * @property-read \Atomino\Molecules\Module\Attachment\Img\Img $image
+ * @property-read \Atomino\Molecules\Module\Attachment\Img\Img|null $image
  */
 class Attachment implements \JsonSerializable {
 
@@ -34,10 +35,29 @@ class Attachment implements \JsonSerializable {
 		private int|null $height = null,
 		private string|null $safezone = null,
 		private string|null $focus = null,
+		private int|null $quality = null
 	) {
 	}
 
-	#[Pure] public function __isset(string $name): bool { return in_array($name, ['mimetype', 'filename', 'title', 'size', 'url', 'path', 'storage', 'isImage', 'file', 'image', 'width', 'height', 'safezone', 'focus']); }
+	#[Pure] public function __isset(string $name): bool {
+		return in_array($name, [
+			'mimetype',
+			'filename',
+			'title',
+			'size',
+			'url',
+			'path',
+			'storage',
+			'isImage',
+			'file',
+			'image',
+			'width',
+			'height',
+			'safezone',
+			'focus',
+			'quality',
+		]);
+	}
 
 	public function __get(string $name) {
 		return match ($name) {
@@ -50,20 +70,40 @@ class Attachment implements \JsonSerializable {
 			'storage' => $this->storage,
 			'isImage' => str_starts_with($this->mimetype, 'image/'),
 			'file' => new File($this->path),
-			'image' => new Img($this),
+			'image' => $this->isImage ? new Img($this) : null,
 			'width' => $this->width,
 			'height' => $this->height,
 			'focus' => $this->focus,
 			'safezone' => $this->safezone,
+			'quality' => $this->quality,
 			default => null
 		};
 	}
 
-	public function setWidth(int|null $width) { $this->width = $width; $this->storage->persist();}
-	public function setHeight(int|null $height) { $this->height = $height; $this->storage->persist();}
-	public function setSafezone(string|null $safezone) { $this->safezone = $safezone; $this->storage->persist();}
-	public function setFocus(string|null $focus) { $this->focus = $focus; $this->storage->persist();}
-	public function setTitle(string|null $title) { $this->title = $title; $this->storage->persist();}
+	public function setWidth(int|null $width) {
+		$this->width = $width;
+		$this->storage->persist();
+	}
+	public function setHeight(int|null $height) {
+		$this->height = $height;
+		$this->storage->persist();
+	}
+	public function setSafezone(string|null $safezone) {
+		$this->safezone = $safezone;
+		$this->storage->persist();
+	}
+	public function setFocus(string|null $focus) {
+		$this->focus = $focus;
+		$this->storage->persist();
+	}
+	public function setTitle(string|null $title) {
+		$this->title = $title;
+		$this->storage->persist();
+	}
+	public function setQuality(int|null $quality) {
+		$this->quality = $quality;
+		$this->storage->persist();
+	}
 
 	public function delete() {
 		$this->deleteImages();
@@ -107,6 +147,7 @@ class Attachment implements \JsonSerializable {
 			'height'     => $this->height,
 			'safezone'   => $this->safezone,
 			'focus'      => $this->focus,
+			'quality'    => $this->quality,
 		];
 	}
 }

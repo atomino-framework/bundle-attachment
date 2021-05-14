@@ -28,8 +28,10 @@ class Img{
 		$config = Application::DIC()->get(Config::class);
 		$this->urlBase = $config->imgUrl;
 		$this->secret = $config->imgSecret;
-		$this->jpegQuality = $config->imgJpegQuality ?? 80;
+
+		$this->jpegQuality = $this->attachment->quality ?? $config->imgJpegQuality ?? 80;
 		$this->pathId = str_replace('/', '', trim($this->attachment->storage->subPath, "/"));
+
 	}
 
 	#region resize
@@ -82,14 +84,11 @@ class Img{
 		if(!is_null($this->attachment->safezone)) $op .= '~'.$this->attachment->safezone;
 		if(!is_null($this->attachment->focus)) $op .= '-'.$this->attachment->focus;
 
-		if ($ext === 'jpg' || $ext === 'webp'){
-			$this->jpegQuality = min(max($this->jpegQuality, 0), 100);
-			$op .= '.' . base_convert(floor($this->jpegQuality / 4), 10, 32);
-		}
+		$this->jpegQuality = min(max($this->jpegQuality, 0), 100);
+		$op .= '.' . base_convert(floor($this->jpegQuality / 4), 10, 32);
+
 		$url = urlencode($this->file->getFilename()) . '.' . $op . '.' . $this->pathId;
-		$url = $this->urlBase . '/' . $url . '.' . base_convert(crc32($url . '.' . $ext . $this->secret), 10, 32) . '.' . $ext;
-		
-		return $url;
+		return $this->urlBase . '/' . $url . '.' . base_convert(crc32($url . '.' . $ext . $this->secret), 10, 36) . '.' . $ext;
 	}
 
 	#[Pure] private function conv(int $value, int $padding): string{

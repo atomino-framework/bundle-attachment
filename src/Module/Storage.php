@@ -73,6 +73,7 @@ class Storage implements \JsonSerializable {
 				$file['height'],
 				$file['safezone'],
 				$file['focus'],
+				$file['quality'],
 			);
 		}
 	}
@@ -152,7 +153,8 @@ class Storage implements \JsonSerializable {
 			$oldAttachment->width,
 			$oldAttachment->height,
 			$oldAttachment->safezone,
-			$oldAttachment->focus
+			$oldAttachment->focus,
+			$oldAttachment->quality,
 		);
 		foreach ($this->collectionStorages as &$collectionStorage) {
 			if (($index = array_search($filename, $collectionStorage)) !== false) {
