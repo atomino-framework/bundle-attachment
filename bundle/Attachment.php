@@ -1,7 +1,7 @@
-<?php namespace Atomino\Molecules\Module\Attachment;
+<?php namespace Atomino\Bundle\Attachment;
 
+use Atomino\Bundle\Attachment\Img\Img;
 use Atomino\Core\Application;
-use Atomino\Molecules\Module\Attachment\Img\Img;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
 
@@ -18,9 +18,9 @@ use Symfony\Component\HttpFoundation\File\File;
  * @property-read int|null $quality
  * @property-read int $size
  * @property-read File $file
- * @property-read \Atomino\Molecules\Module\Attachment\Storage $storage
+ * @property-read \Atomino\Bundle\Attachment\Storage $storage
  * @property-read bool $isImage
- * @property-read \Atomino\Molecules\Module\Attachment\Img\Img|null $image
+ * @property-read \Atomino\Bundle\Attachment\Img\Img|null $image
  */
 class Attachment implements \JsonSerializable {
 

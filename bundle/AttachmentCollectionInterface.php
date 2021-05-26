@@ -1,4 +1,4 @@
-<?php namespace Atomino\Molecules\Module\Attachment;
+<?php namespace Atomino\Bundle\Attachment;
 
 /**
  * @property-read string $field,
@@ -6,4 +6,4 @@
  * @property-read  int $maxSize = 0,
  * @property-read  string|null $mimetype = null,
  */
-interface AttachmentCollectionInterface{}
+interface AttachmentCollectionInterface { }

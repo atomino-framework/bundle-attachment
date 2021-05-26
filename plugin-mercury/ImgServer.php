@@ -1,16 +1,16 @@
-<?php namespace Atomino\Molecules\Module\Attachment\Server;
+<?php namespace Atomino\Mercury\Plugins\Attachment;
 
-use Atomino\Molecules\Module\Attachment\Config;
-use Atomino\Molecules\Module\Attachment\Img\ImgResolver;
-use Atomino\RequestPipeline\FileServer\FileLocator;
-use Atomino\RequestPipeline\FileServer\FileServer;
-use Atomino\RequestPipeline\Pipeline\Handler;
-use Atomino\RequestPipeline\Router\Router;
+use Atomino\Bundle\Attachment\Config;
+use Atomino\Bundle\Attachment\Img\ImgResolver;
+use Atomino\Mercury\FileServer\FileLocator;
+use Atomino\Mercury\FileServer\FileServer;
+use Atomino\Mercury\Pipeline\Handler;
+use Atomino\Mercury\Router\Router;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use function Atomino\dic;
 
-class ImgServer extends Handler{
+class ImgServer extends Handler {
 	public static function route(Router $router) {
 		$attachmentConfig = dic()->get(Config::class);
 

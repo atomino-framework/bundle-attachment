@@ -1,5 +1,5 @@
 {
-    "name": "atomino/plugin-attachment",
+    "name": "atomino/bundle-attachment",
     "authors": [
         {
             "name": "laborci",
@@ -9,8 +9,9 @@
     "require": {},
     "autoload": {
         "psr-4": {
-            "Atomino\\Molecules\\Module\\Attachment\\": "src/Module/",
-            "Atomino\\Molecules\\EntityPlugin\\Attachmentable\\": "src/EntityPlugin/"
+            "Atomino\\Bundle\\Attachment\\": "bundle/",
+            "Atomino\\Carbon\\Plugins\\Attachment\\": "plugin-carbon/",
+            "Atomino\\Mercury\\Plugins\\Attachment\\": "plugin-mercury/"
         }
     }
 }

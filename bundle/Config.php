@@ -1,6 +1,4 @@
-<?php namespace Atomino\Molecules\Module\Attachment;
-
-use Atomino\Core\Application;
+<?php namespace Atomino\Bundle\Attachment;
 
 class Config {
 	public function __construct(
@@ -11,5 +9,6 @@ class Config {
 		public string $imgPath,
 		public string $imgSecret,
 		public int $imgJpegQuality,
-	) {	}
+	) {
+	}
 }

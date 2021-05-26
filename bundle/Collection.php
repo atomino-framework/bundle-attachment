@@ -1,6 +1,5 @@
-<?php namespace Atomino\Molecules\Module\Attachment;
+<?php namespace Atomino\Bundle\Attachment;
 
-use Atomino\Molecules\Attachment\EntityPlugin\AttachmentCollection;
 use Exception;
 use JetBrains\PhpStorm\Deprecated;
 use JetBrains\PhpStorm\Pure;
@@ -10,21 +9,21 @@ use Symfony\Component\HttpFoundation\File\File;
  * @property-read string[] $files
  * @property-read Storage $storage
  * @property-read string $name
- * @property-read \Atomino\Molecules\Module\Attachment\Attachment|null $first
+ * @property-read \Atomino\Bundle\Attachment\Attachment|null $first
  * @property-read int $count
  */
-class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
+class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 
 	private string $name;
-	public function __toString(): string{ return $this->name; }
+	public function __toString(): string { return $this->name; }
 
-	public function __construct(private AttachmentCollectionInterface $descriptor, private Storage $storage, private array &$files){
+	public function __construct(private AttachmentCollectionInterface $descriptor, private Storage $storage, private array &$files) {
 		$this->name = $descriptor->field;
 	}
 
-	#[Pure] public function __isset(string $name): bool{ return in_array($name, ['files', 'storage', 'name', 'count', 'first']); }
-	#[Pure] public function __get(string $name){
-		return match ( $name ) {
+	#[Pure] public function __isset(string $name): bool { return in_array($name, ['files', 'storage', 'name', 'count', 'first']); }
+	#[Pure] public function __get(string $name) {
+		return match ($name) {
 			'files' => $this->files,
 			'storage' => $this->storage,
 			'name' => $this->descriptor->field,
@@ -34,46 +33,46 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
 		};
 	}
 
-	protected function persist(){ $this->storage->persist(); }
-	protected function begin(){ $this->storage->begin(); }
-	protected function commit(){ $this->storage->commit(); }
+	protected function persist() { $this->storage->persist(); }
+	protected function begin() { $this->storage->begin(); }
+	protected function commit() { $this->storage->commit(); }
 
-	public function addFile(File $file): string{
+	public function addFile(File $file): string {
 		$this->begin();
 		$filename = $this->storage->addFile($file);
 		$this->add($filename);
 		$this->commit();
 		return $filename;
 	}
-	public function add(string $filename){
-		if ($this->storage->has($filename) && !in_array($filename, $this->files)){
+	public function add(string $filename) {
+		if ($this->storage->has($filename) && !in_array($filename, $this->files)) {
 			$file = $this->storage->getAttachment($filename);
 			if ($this->descriptor->maxSize !== 0 && $file->size > $this->descriptor->maxSize) throw new Exception("File size too big. Max allowed: " . $this->descriptor->maxSize);
 			if ($this->descriptor->maxCount !== 0 && count($this->files) >= $this->descriptor->maxCount) throw new Exception("Collection can store only " . $this->descriptor->maxCount . " files");
-			if ($this->descriptor->mimetype !== null && !preg_match($this->descriptor->mimetype, $file->mimetype)) throw new Exception("File mimetype mismatch, ".$this->descriptor->mimetype.' expected');
+			if ($this->descriptor->mimetype !== null && !preg_match($this->descriptor->mimetype, $file->mimetype)) throw new Exception("File mimetype mismatch, " . $this->descriptor->mimetype . ' expected');
 			$this->files[] = $filename;
 			$this->persist();
 		}
 	}
-	public function remove(string $filename){
-		if (( $index = array_search($filename, $this->files) ) !== false){
+	public function remove(string $filename) {
+		if (($index = array_search($filename, $this->files)) !== false) {
 			array_splice($this->files, $index, 1);
 			$hasLink = false;
-			foreach ($this->storage->collections as $collection){
+			foreach ($this->storage->collections as $collection) {
 				$hasLink = $hasLink || !is_null($collection->get($filename));
 			}
-			if(!$hasLink) $this->storage->delete($filename);
+			if (!$hasLink) $this->storage->delete($filename);
 			$this->persist();
 		}
 	}
-	public function order(string $filename, int $serial){
+	public function order(string $filename, int $serial) {
 		if (!$this->storage->has($filename)) return;
 		$this->begin();
 		if ($serial < 0) $serial = 0;
 		if ($serial > count($this->files)) $serial = count($this->files);
 
 		$oldIndex = array_search($filename, $this->files);
-		if($oldIndex <= $serial) $serial--;
+		if ($oldIndex <= $serial) $serial--;
 
 		array_splice($this->files, $oldIndex, 1);
 		array_splice($this->files, $serial, 0, $filename);
@@ -82,11 +81,11 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
 
 	/**
 	 * @param string $pattern as glob pattern
-	 * @return \Atomino\EntityPlugins\Attachment\Module\Attachment[]
+	 * @return \Atomino\Carbon\Plugins\Attachments\Attachment\Module\Attachment[]
 	 */
-	public function find(string $pattern):array{
+	public function find(string $pattern): array {
 		$result = [];
-		foreach ($this->files as $filename){
+		foreach ($this->files as $filename) {
 			if (fnmatch($pattern, $filename)) $result[] = $this->storage->getAttachment($filename);
 		}
 		return $result;
@@ -94,17 +93,17 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
 
 	/**
 	 * @param string $mimetype as glob pattern
-	 * @return \Atomino\EntityPlugins\Attachment\Module\Attachment[]
+	 * @return \Atomino\Carbon\Plugins\Attachments\Attachment\Module\Attachment[]
 	 */
-	public function filter(string $mimetype):array{
+	public function filter(string $mimetype): array {
 		$result = [];
-		foreach ($this->files as $filename){
-			if (fnmatch($mimetype, ( $file = $this->storage->getAttachment($filename))->mimetype)) $result[] = $file;
+		foreach ($this->files as $filename) {
+			if (fnmatch($mimetype, ($file = $this->storage->getAttachment($filename))->mimetype)) $result[] = $file;
 		}
 		return $result;
 	}
 
-	#[Pure] public function get(string|null $filename = null): Attachment|null{
+	#[Pure] public function get(string|null $filename = null): Attachment|null {
 		if (!count($this->files)) return null;
 		if (is_null($filename)) return $this->storage->getAttachment($this->files[0]);
 		if (in_array($filename, $this->files)) return $this->storage->getAttachment($filename);
@@ -112,24 +111,24 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess{
 	}
 
 	// Countable
-	#[Pure] public function count(): int{ return count($this->files); }
+	#[Pure] public function count(): int { return count($this->files); }
 
 	// IteratorAggregate
-	public function getIterator(): CollectionIterator{ return new CollectionIterator($this); }
+	public function getIterator(): CollectionIterator { return new CollectionIterator($this); }
 
 	// ArrayAccess
-	#[Pure] public function offsetGet(mixed $offset): Attachment|null{
+	#[Pure] public function offsetGet(mixed $offset): Attachment|null {
 		if (is_numeric($offset)) return $this->storage->getAttachment($this->files[$offset]);
 		return $this->get($offset);
 		//if(is_numeric($offset)) return $this->lazyLoad() ?: $this->attachments[$offset];
 		//return $this->__get($offset);
 	}
 
-	#[Pure] public function offsetExists(mixed $offset): bool{
+	#[Pure] public function offsetExists(mixed $offset): bool {
 		if (is_numeric($offset)) return array_key_exists($offset, $this->files);
 		return in_array($offset, $this->files);
 	}
 
-	#[Deprecated( 'OUT OF ORDER' )] public function offsetSet($offset, $value){ }
-	#[Deprecated( 'OUT OF ORDER' )] public function offsetUnset($offset){ }
+	#[Deprecated('OUT OF ORDER')] public function offsetSet($offset, $value) { }
+	#[Deprecated('OUT OF ORDER')] public function offsetUnset($offset) { }
 }

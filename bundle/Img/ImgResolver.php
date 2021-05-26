@@ -1,6 +1,6 @@
-<?php namespace Atomino\Molecules\Module\Attachment\Img;
+<?php namespace Atomino\Bundle\Attachment\Img;
 
-use Atomino\Molecules\Module\Attachment\Config;
+use Atomino\Bundle\Attachment\Config;
 use JetBrains\PhpStorm\ArrayShape;
 use function Atomino\dic;
 

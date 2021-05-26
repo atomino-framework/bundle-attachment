@@ -1,4 +1,4 @@
-<?php namespace Atomino\Molecules\Module\Attachment\Img;
+<?php namespace Atomino\Bundle\Attachment\Img;
 
 class ImgCreatorGD2 implements ImgCreatorInterface {
 

@@ -1,9 +1,8 @@
-<?php namespace Atomino\Molecules\Module\Attachment;
+<?php namespace Atomino\Bundle\Attachment;
 
+use Atomino\Bundle\Attachment\Img\ImgCreatorInterface;
+use Atomino\Carbon\Entity;
 use Atomino\Core\Application;
-use Atomino\Entity\Entity;
-use Atomino\Molecules\EntityPlugin\Attachmentable\Attachmentable as Plugin;
-use Atomino\Molecules\Module\Attachment\Img\ImgCreatorInterface;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -14,16 +13,16 @@ use function Atomino\dic;
  * @property-read string $path
  * @property-read string $url
  * @property-read string $subPath
- * @property-read \Atomino\Molecules\Module\Attachment\Attachment[] $attachments
- * @property-read \Atomino\Molecules\Module\Attachment\Collection[] $collections
+ * @property-read \Atomino\Bundle\Attachment\Attachment[] $attachments
+ * @property-read \Atomino\Bundle\Attachment\Collection[] $collections
  */
 class Storage implements \JsonSerializable {
 
-	/** @var \Atomino\Molecules\Module\Attachment\Collection[] */
+	/** @var \Atomino\Bundle\Attachment\Collection[] */
 	private array $collections = [];
 	private string $path = '';
 	private string $url;
-	/** @var \Atomino\Molecules\Module\Attachment\Attachment[] */
+	/** @var \Atomino\Bundle\Attachment\Attachment[] */
 	private array $attachments = [];
 	private int $transaction = 0;
 	private array $collectionStorages = [];
@@ -31,9 +30,9 @@ class Storage implements \JsonSerializable {
 
 	/**
 	 * Storage constructor.
-	 * @param \Atomino\Entity\Entity $entity
+	 * @param \Atomino\Carbon\Entity $entity
 	 * @param array $attachments
-	 * @param \Atomino\Molecules\Module\Attachment\AttachmentCollectionInterface[] $collections
+	 * @param \Atomino\Bundle\Attachment\AttachmentCollectionInterface[] $collections
 	 * @throws \DI\DependencyException
 	 * @throws \DI\NotFoundException
 	 */
