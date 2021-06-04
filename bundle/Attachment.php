@@ -4,6 +4,7 @@ use Atomino\Bundle\Attachment\Img\Img;
 use Atomino\Core\Application;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
+use function Atomino\dic;
 
 /**
  * @property-read string $url
@@ -111,18 +112,18 @@ class Attachment implements \JsonSerializable {
 	}
 
 	public function deleteImages() {
-		$files = glob(Application::DIC()->get(Config::class)->imgPath . '/*.*.' . str_replace('/', '', $this->storage->subPath) . '.*.*');
+		$files = glob(dic()->get(Config::class)->imgPath . '/*.*.' . str_replace('/', '', $this->storage->subPath) . '.*.*');
 		foreach ($files as $file) unlink($file);
 	}
 
 	public function rename($newName) { $this->storage->rename($this->filename, $newName); }
 
 	public function restrictAccess() {
-		touch($this->path . Application::DIC()->get(Config::class)->restrictedAccessPostfix);
+		touch($this->path . dic()->get(Config::class)->restrictedAccessPostfix);
 	}
 
 	public function allowAccess() {
-		file_exists($this->path . Application::DIC()->get(Config::class)->restrictedAccessPostfix) && touch($this->path . Application::DIC()->get(Config::class)->restrictedAccessPostfix);
+		file_exists($this->path . dic()->get(Config::class)->restrictedAccessPostfix) && touch($this->path . dic()->get(Config::class)->restrictedAccessPostfix);
 	}
 
 	#region property get / set

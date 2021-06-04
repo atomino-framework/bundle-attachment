@@ -2,9 +2,9 @@
 
 use Atomino\Bundle\Attachment\Attachment;
 use Atomino\Bundle\Attachment\Config;
-use Atomino\Core\Application;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
+use function Atomino\dic;
 
 /**
  * @property string $png
@@ -25,7 +25,8 @@ class Img {
 
 	public function __construct(private Attachment $attachment) {
 		$this->file = $this->attachment->file;
-		$config = Application::DIC()->get(Config::class);
+
+		$config = dic()->get(Config::class);
 		$this->urlBase = $config->imgUrl;
 		$this->secret = $config->imgSecret;
 

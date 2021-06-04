@@ -4,6 +4,7 @@ use Atomino\Bundle\Attachment\Collection;
 use Atomino\Bundle\Attachment\Storage;
 use Atomino\Carbon\Attributes\EventHandler;
 use Atomino\Carbon\Entity;
+use function Atomino\dic;
 
 trait AttachmentableTrait {
 
@@ -34,6 +35,7 @@ trait AttachmentableTrait {
 	public function getAttachmentStorage(): Storage {
 		/** @var Entity $entity */
 		$entity = $this;
+
 		return
 			is_null($this->AttachmentPlugin_storage) ?
 				$this->AttachmentPlugin_storage = new Storage(

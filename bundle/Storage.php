@@ -2,7 +2,6 @@
 
 use Atomino\Bundle\Attachment\Img\ImgCreatorInterface;
 use Atomino\Carbon\Entity;
-use Atomino\Core\Application;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -37,7 +36,7 @@ class Storage implements \JsonSerializable {
 	 * @throws \DI\NotFoundException
 	 */
 	public function __construct(private Entity $entity, array $attachments, array $collections, private string $field) {
-		$config = Application::DIC()->get(Config::class);
+		$config = dic()->get(Config::class);
 		if (is_null($entity->id)) return;
 
 		$itemPath = (function ($id) {
