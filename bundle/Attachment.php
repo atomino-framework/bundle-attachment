@@ -1,10 +1,8 @@
 <?php namespace Atomino\Bundle\Attachment;
 
 use Atomino\Bundle\Attachment\Img\Img;
-use Atomino\Core\Application;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
-use function Atomino\dic;
 
 /**
  * @property-read string $url
@@ -25,6 +23,8 @@ use function Atomino\dic;
  */
 class Attachment implements \JsonSerializable {
 
+	private AttachmentConfig $config;
+
 	public function __construct(
 		private Storage $storage,
 		private string $filename,
@@ -38,6 +38,7 @@ class Attachment implements \JsonSerializable {
 		private string|null $focus = null,
 		private int|null $quality = null
 	) {
+		$this->config = $this->storage->getContainer()->get(AttachmentConfig::class);
 	}
 
 	#[Pure] public function __isset(string $name): bool {
@@ -71,7 +72,7 @@ class Attachment implements \JsonSerializable {
 			'storage' => $this->storage,
 			'isImage' => str_starts_with($this->mimetype, 'image/'),
 			'file' => new File($this->path),
-			'image' => $this->isImage ? new Img($this) : null,
+			'image' => $this->isImage ? new Img($this, $this->storage->getContainer()) : null,
 			'width' => $this->width,
 			'height' => $this->height,
 			'focus' => $this->focus,
@@ -112,18 +113,18 @@ class Attachment implements \JsonSerializable {
 	}
 
 	public function deleteImages() {
-		$files = glob(dic()->get(Config::class)->imgPath . '/*.*.' . str_replace('/', '', $this->storage->subPath) . '.*.*');
+		$files = glob($this->config["img.path"] . '/*.*.' . str_replace('/', '', $this->storage->subPath) . '.*.*');
 		foreach ($files as $file) unlink($file);
 	}
 
 	public function rename($newName) { $this->storage->rename($this->filename, $newName); }
 
 	public function restrictAccess() {
-		touch($this->path . dic()->get(Config::class)->restrictedAccessPostfix);
+		touch($this->path . $this->config["restricted-access-postfix"]);
 	}
 
 	public function allowAccess() {
-		file_exists($this->path . dic()->get(Config::class)->restrictedAccessPostfix) && touch($this->path . dic()->get(Config::class)->restrictedAccessPostfix);
+		file_exists($this->path . $this->config["restricted-access-postfix"]) && touch($this->path . $this->config["restricted-access-postfix"]);
 	}
 
 	#region property get / set

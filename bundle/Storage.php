@@ -2,11 +2,11 @@
 
 use Atomino\Bundle\Attachment\Img\ImgCreatorInterface;
 use Atomino\Carbon\Entity;
+use DI\Container;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use VRia\Utils\NoDiacritic;
-use function Atomino\dic;
 
 /**
  * @property-read string $path
@@ -35,8 +35,8 @@ class Storage implements \JsonSerializable {
 	 * @throws \DI\DependencyException
 	 * @throws \DI\NotFoundException
 	 */
-	public function __construct(private Entity $entity, array $attachments, array $collections, private string $field) {
-		$config = dic()->get(Config::class);
+	public function __construct(private Entity $entity, array $attachments, array $collections, private string $field, private Container $container) {
+		$config = $this->container->get(AttachmentConfig::class);
 		if (is_null($entity->id)) return;
 
 		$itemPath = (function ($id) {
@@ -46,8 +46,8 @@ class Storage implements \JsonSerializable {
 				'/' . substr($id36, 4, 2) . '/';
 		})($entity->id);
 		$this->subPath = $this->entity::model()->getTable() . '/' . $itemPath;
-		$this->path = $config->path . '/' . $this->subPath;
-		$this->url = $config->url . '/' . $this->subPath;
+		$this->path = $config("path") . '/' . $this->subPath;
+		$this->url = $config('url') . '/' . $this->subPath;
 
 		// Create Collections
 		foreach ($collections as $collection) {
@@ -75,6 +75,8 @@ class Storage implements \JsonSerializable {
 			);
 		}
 	}
+
+	public function getContainer(): Container { return $this->container; }
 
 	#[Pure] public function __isset(string $name): bool { return in_array($name, ['path', 'url', 'collections', 'attachments', 'subPath']); }
 	public function __get(string $name) {
@@ -107,7 +109,7 @@ class Storage implements \JsonSerializable {
 			'',
 			[]);
 		if ($attachment->isImage) {
-			$size = dic()->get(ImgCreatorInterface::class)->getDimensions($attachment->path);
+			$size = $this->container->get(ImgCreatorInterface::class)->getDimensions($attachment->path);
 			$attachment->setWidth($size['width']);
 			$attachment->setHeight($size['height']);
 		}

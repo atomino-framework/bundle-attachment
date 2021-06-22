@@ -1,6 +1,7 @@
 <?php namespace Atomino\Carbon\Plugins\Attachment;
 
 use Atomino\Bundle\Attachment\Collection;
+use Atomino\Bundle\Attachment\Config;
 use Atomino\Bundle\Attachment\Storage;
 use Atomino\Carbon\Attributes\EventHandler;
 use Atomino\Carbon\Entity;
@@ -42,7 +43,8 @@ trait AttachmentableTrait {
 					$entity,
 					$this->AttachmentPlugin_stored_attachments,
 					Attachmentable::fetch(static::model())->getCollections(),
-					Attachmentable::fetch(static::model())->field
+					Attachmentable::fetch(static::model())->field,
+					static::model()->getContainer()
 				) :
 				$this->AttachmentPlugin_storage;
 	}

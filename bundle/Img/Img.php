@@ -1,10 +1,10 @@
 <?php namespace Atomino\Bundle\Attachment\Img;
 
 use Atomino\Bundle\Attachment\Attachment;
-use Atomino\Bundle\Attachment\Config;
+use Atomino\Bundle\Attachment\AttachmentConfig;
+use DI\Container;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
-use function Atomino\dic;
 
 /**
  * @property string $png
@@ -23,16 +23,15 @@ class Img {
 	private string $secret;
 
 
-	public function __construct(private Attachment $attachment) {
+	public function __construct(private Attachment $attachment, Container $container) {
 		$this->file = $this->attachment->file;
 
-		$config = dic()->get(Config::class);
-		$this->urlBase = $config->imgUrl;
-		$this->secret = $config->imgSecret;
+		$config = $container->get(AttachmentConfig::class);
+		$this->urlBase = $config("img.url");
+		$this->secret = $config("img.secret");
+		$this->jpegQuality = $this->attachment->quality ?? $config("img.jpeg-quality") ?? 80;
 
-		$this->jpegQuality = $this->attachment->quality ?? $config->imgJpegQuality ?? 80;
 		$this->pathId = str_replace('/', '', trim($this->attachment->storage->subPath, "/"));
-
 	}
 
 	#region resize

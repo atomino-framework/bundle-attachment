@@ -1,21 +1,19 @@
 <?php namespace Atomino\Bundle\Attachment\Img;
 
-use Atomino\Bundle\Attachment\Config;
+use Atomino\Bundle\Attachment\AttachmentConfig;
 use JetBrains\PhpStorm\ArrayShape;
-use function Atomino\dic;
 
 class ImgResolver {
 
-	public function __construct(private ImgCreatorInterface $creator) { }
+	public function __construct(private ImgCreatorInterface $creator, private AttachmentConfig $attachmentConfig) { }
 
 	public function resolve(string $url): bool {
 
-		$config = dic()->get(Config::class);
-		if (!is_dir($config->imgPath)) mkdir($config->imgPath, 0777, true);
+		if (!is_dir($this->attachmentConfig["img.path"])) mkdir($this->attachmentConfig["img.path"], 0777, true);
 
 		$uri = explode('/', $url);
 		$uri = urldecode(array_pop($uri));
-		$target = $config->imgPath . '/' . $uri;
+		$target = $this->attachmentConfig["img.path"] . '/' . $uri;
 		if (file_exists($target)) return true;
 
 		#region parse uri
@@ -33,13 +31,13 @@ class ImgResolver {
 		$path = substr_replace($path, '/', -6, 0);
 		$path = substr_replace($path, '/', -4, 0);
 		$path = substr_replace($path, '/', -2, 0);
-		$source = ($config->path . $path . '/' . $file);
+		$source = ($this->attachmentConfig["path"] . $path . '/' . $file);
 		if (!file_exists($source)) return false;
 		#endregion
 
 		#region check hash
 		$url = $file . '.' . $opCode . (($jpegQuality) ? ('.' . $jpegQuality) : ('')) . '.' . $pathId . '.' . $ext;
-		$newHash = base_convert(crc32($url . $config->imgSecret), 10, 36);
+		$newHash = base_convert(crc32($url .$this->attachmentConfig["img.secret"]), 10, 36);
 		if ($newHash != $hash) return false;
 		#endregion
 
