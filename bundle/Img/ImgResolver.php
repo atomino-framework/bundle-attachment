@@ -2,13 +2,13 @@
 
 use Atomino\Bundle\Attachment\AttachmentConfig;
 use JetBrains\PhpStorm\ArrayShape;
+use function Atomino\debug;
 
 class ImgResolver {
 
 	public function __construct(private ImgCreatorInterface $creator, private AttachmentConfig $attachmentConfig) { }
 
 	public function resolve(string $url): bool {
-
 		if (!is_dir($this->attachmentConfig["img.path"])) mkdir($this->attachmentConfig["img.path"], 0777, true);
 
 		$uri = explode('/', $url);
@@ -31,8 +31,9 @@ class ImgResolver {
 		$path = substr_replace($path, '/', -6, 0);
 		$path = substr_replace($path, '/', -4, 0);
 		$path = substr_replace($path, '/', -2, 0);
-		$source = ($this->attachmentConfig["path"] . $path . '/' . $file);
+		$source = ($this->attachmentConfig["path"] .'/'. $path . '/' . $file);
 		if (!file_exists($source)) return false;
+
 		#endregion
 
 		#region check hash

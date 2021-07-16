@@ -10,6 +10,7 @@ use Atomino\Mercury\Pipeline\Handler;
 use Atomino\Mercury\Router\Router;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use function Atomino\debug;
 use function Atomino\dic;
 
 class ImgServer extends Handler {
@@ -29,6 +30,7 @@ class ImgServer extends Handler {
 
 	public function handle(Request $request): Response|null {
 		$result = $this->imgResolver->resolve($request->getPathInfo());
+		debug($result);
 		return $result ? $this->next($request) : null;
 	}
 }

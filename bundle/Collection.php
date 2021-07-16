@@ -40,16 +40,22 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 	public function addFile(File $file): string {
 		$this->begin();
 		$filename = $this->storage->addFile($file);
-		$this->add($filename);
+		try{
+			$this->add($filename);
+		}catch (\Throwable $exception){
+			$this->storage->delete($filename);
+			throw $exception;
+		}
 		$this->commit();
 		return $filename;
 	}
 	public function add(string $filename) {
 		if ($this->storage->has($filename) && !in_array($filename, $this->files)) {
 			$file = $this->storage->getAttachment($filename);
-			if ($this->descriptor->maxSize !== 0 && $file->size > $this->descriptor->maxSize) throw new Exception("File size too big. Max allowed: " . $this->descriptor->maxSize);
-			if ($this->descriptor->maxCount !== 0 && count($this->files) >= $this->descriptor->maxCount) throw new Exception("Collection can store only " . $this->descriptor->maxCount . " files");
-			if ($this->descriptor->mimetype !== null && !preg_match($this->descriptor->mimetype, $file->mimetype)) throw new Exception("File mimetype mismatch, " . $this->descriptor->mimetype . ' expected');
+
+			if ($this->descriptor->maxSize !== 0 && $file->size > $this->descriptor->maxSize) throw new FileException("File size too big. Max allowed: " . $this->descriptor->maxSize);
+			if ($this->descriptor->maxCount !== 0 && count($this->files) >= $this->descriptor->maxCount) throw new FileException("Collection can store only " . $this->descriptor->maxCount . " files");
+			if ($this->descriptor->mimetype !== null && !preg_match($this->descriptor->mimetype, $file->mimetype)) throw new FileException("File mimetype mismatch, " . $this->descriptor->mimetype . ' expected');
 			$this->files[] = $filename;
 			$this->persist();
 		}
