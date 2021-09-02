@@ -4,6 +4,7 @@ use Exception;
 use JetBrains\PhpStorm\Deprecated;
 use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
+use function Atomino\debug;
 
 /**
  * @property-read string[] $files
@@ -11,6 +12,10 @@ use Symfony\Component\HttpFoundation\File\File;
  * @property-read string $name
  * @property-read \Atomino\Bundle\Attachment\Attachment|null $first
  * @property-read int $count
+ * @property-read string $field,
+ * @property-read int $maxCount = 0,
+ * @property-read int $maxSize = 0,
+ * @property-read string|null $mimetype = null,
  */
 class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 
@@ -21,7 +26,7 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 		$this->name = $descriptor->field;
 	}
 
-	#[Pure] public function __isset(string $name): bool { return in_array($name, ['files', 'storage', 'name', 'count', 'first']); }
+	#[Pure] public function __isset(string $name): bool { return in_array($name, ['files', 'storage', 'name', 'count', 'first', 'mimetype','maxSize','maxCount', 'field']); }
 	#[Pure] public function __get(string $name) {
 		return match ($name) {
 			'files' => $this->files,
@@ -29,6 +34,10 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 			'name' => $this->descriptor->field,
 			'count' => $this->count(),
 			'first' => $this->get(),
+			'mimetype'=>$this->descriptor->mimetype,
+			'maxSize'=>$this->descriptor->maxSize,
+			'maxCount'=>$this->descriptor->maxCount,
+			'field'=>$this->descriptor->field,
 			default => null
 		};
 	}
@@ -72,13 +81,19 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 		}
 	}
 	public function order(string $filename, int $serial) {
+
+
 		if (!$this->storage->has($filename)) return;
 		$this->begin();
+
 		if ($serial < 0) $serial = 0;
 		if ($serial > count($this->files)) $serial = count($this->files);
 
+
+
 		$oldIndex = array_search($filename, $this->files);
-		if ($oldIndex <= $serial) $serial--;
+
+		if ($oldIndex < $serial) $serial--;
 
 		array_splice($this->files, $oldIndex, 1);
 		array_splice($this->files, $serial, 0, $filename);
