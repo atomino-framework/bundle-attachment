@@ -26,17 +26,17 @@ class Attachment implements \JsonSerializable {
 	private AttachmentConfig $config;
 
 	public function __construct(
-		private Storage $storage,
-		private string $filename,
-		private int $size,
-		private string $mimetype,
-		private string $title = '',
-		private array $properties = [],
-		private int|null $width = null,
-		private int|null $height = null,
+		private Storage     $storage,
+		private string      $filename,
+		private int         $size,
+		private string      $mimetype,
+		private string      $title = '',
+		private array       $properties = [],
+		private int|null    $width = null,
+		private int|null    $height = null,
 		private string|null $safezone = null,
 		private string|null $focus = null,
-		private int|null $quality = null
+		private int|null    $quality = null
 	) {
 		$this->config = $this->storage->getContainer()->get(AttachmentConfig::class);
 	}
@@ -139,7 +139,7 @@ class Attachment implements \JsonSerializable {
 
 	#endregion
 
-	public function jsonSerialize() {
+	public function jsonSerialize(): mixed {
 		return [
 			'size'       => $this->size,
 			'mimetype'   => $this->mimetype,

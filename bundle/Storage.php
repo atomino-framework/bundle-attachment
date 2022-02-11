@@ -193,7 +193,7 @@ class Storage implements \JsonSerializable {
 		$filename = trim($filename, '.-');
 		return $filename . (array_key_exists('extension', $pathInfo) ? '.' . $pathInfo['extension'] : '');
 	}
-	public function jsonSerialize() {
+	public function jsonSerialize():mixed {
 		return [
 			'files'       => $this->attachments,
 			'collections' => $this->collectionStorages,

@@ -26,7 +26,7 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 		$this->name = $descriptor->field;
 	}
 
-	#[Pure] public function __isset(string $name): bool { return in_array($name, ['files', 'storage', 'name', 'count', 'first', 'mimetype','maxSize','maxCount', 'field']); }
+	#[Pure] public function __isset(string $name): bool { return in_array($name, ['files', 'storage', 'name', 'count', 'first', 'mimetype', 'maxSize', 'maxCount', 'field']); }
 	#[Pure] public function __get(string $name) {
 		return match ($name) {
 			'files' => $this->files,
@@ -34,10 +34,10 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 			'name' => $this->descriptor->field,
 			'count' => $this->count(),
 			'first' => $this->get(),
-			'mimetype'=>$this->descriptor->mimetype,
-			'maxSize'=>$this->descriptor->maxSize,
-			'maxCount'=>$this->descriptor->maxCount,
-			'field'=>$this->descriptor->field,
+			'mimetype' => $this->descriptor->mimetype,
+			'maxSize' => $this->descriptor->maxSize,
+			'maxCount' => $this->descriptor->maxCount,
+			'field' => $this->descriptor->field,
 			default => null
 		};
 	}
@@ -49,9 +49,9 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 	public function addFile(File $file): string {
 		$this->begin();
 		$filename = $this->storage->addFile($file);
-		try{
+		try {
 			$this->add($filename);
-		}catch (\Throwable $exception){
+		} catch (\Throwable $exception) {
 			$this->storage->delete($filename);
 			throw $exception;
 		}
@@ -88,7 +88,6 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 
 		if ($serial < 0) $serial = 0;
 		if ($serial > count($this->files)) $serial = count($this->files);
-
 
 
 		$oldIndex = array_search($filename, $this->files);
@@ -131,14 +130,20 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 		return null;
 	}
 
-	// Countable
+	#region Countable
 	#[Pure] public function count(): int { return count($this->files); }
+	#endregion
 
-	// IteratorAggregate
+	#region IteratorAggregate
 	public function getIterator(): CollectionIterator { return new CollectionIterator($this); }
+	#endregion
 
-	// ArrayAccess
-	#[Pure] public function offsetGet(mixed $offset): Attachment|null {
+	#region ArrayAccess
+	/**
+	 * @param mixed $offset
+	 * @return Attachment|null
+	 */
+	#[Pure] public function offsetGet(mixed $offset): mixed {
 		if (is_numeric($offset)) return $this->storage->getAttachment($this->files[$offset]);
 		return $this->get($offset);
 		//if(is_numeric($offset)) return $this->lazyLoad() ?: $this->attachments[$offset];
@@ -150,6 +155,7 @@ class Collection implements \Countable, \IteratorAggregate, \ArrayAccess {
 		return in_array($offset, $this->files);
 	}
 
-	#[Deprecated('OUT OF ORDER')] public function offsetSet($offset, $value) { }
-	#[Deprecated('OUT OF ORDER')] public function offsetUnset($offset) { }
+	#[Deprecated('OUT OF ORDER')] public function offsetSet(mixed $offset, mixed $value): void { }
+	#[Deprecated('OUT OF ORDER')] public function offsetUnset(mixed $offset): void { }
+	#endregion
 }
