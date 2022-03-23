@@ -68,6 +68,8 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 
 	private function saveImage(string $target, \GdImage $img, int|null $jpegQuality): bool {
 		$pathInfo = pathinfo($target);
+		$dir = dirname($target);
+		if(!is_dir($dir)) mkdir($dir);
 		return match ($pathInfo['extension']) {
 			'gif' => imagegif($img, $target),
 			'png' => imagepng($img, $target),
@@ -87,7 +89,7 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		};
 		if ($img === null) return null;
 
-		$exif = exif_read_data($file);
+		$exif = @exif_read_data($file);
 		if (!empty($exif['Orientation'])) {
 			$deg = match ($exif["Orientation"]) {
 				8 => 90,
