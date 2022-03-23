@@ -1,5 +1,7 @@
 <?php namespace Atomino\Bundle\Attachment\Img;
 
+use function Atomino\debug;
+
 class ImgCreatorGD2 implements ImgCreatorInterface {
 
 	public function getDimensions($file): array {
@@ -18,8 +20,8 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		$resizeWidth = ($aspect < $oAspect) ? $height * $oAspect : $width;
 		$resizeHeight = ($aspect > $oAspect) ? $width / $oAspect : $height;
 		$ratio = $resizeWidth / imagesx($img);
-		$img = $this->doResize($img, $resizeWidth, $resizeHeight);
-		$img = $this->doCrop($img, $width, $height, $safezone, $focus, $ratio);
+		$img = $this->doResize($img, (int)$resizeWidth, (int)$resizeHeight);
+		$img = $this->doCrop($img, (int)$width, (int)$height, $safezone, $focus, $ratio);
 
 		return $this->saveImage($target, $img, $jpegQuality);
 	}
@@ -30,7 +32,7 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		$oAspect = imagesx($img) / imagesy($img);
 		$ratio = imagesy($img) / $height;
 		$this->doResize($img, (int)($height * $oAspect), $height);
-		if ($width != 0 and (int)($height * $oAspect) > $width) return $this->doCrop($img, $width, $height, $safezone, $focus, $ratio);
+		if ($width != 0 and (int)($height * $oAspect) > $width) return $this->doCrop($img, (int)$width, (int)$height, $safezone, $focus, $ratio);
 
 		return $this->saveImage($target, $img, $jpegQuality);
 	}
@@ -41,7 +43,7 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		$ratio = imagesx($img) / $width;
 
 		$this->doResize($img, $width, (int)($width / $oAspect));
-		if ($height != 0 and (int)($width / $oAspect) > $height) return $this->doCrop($img, $width, $height, $safezone, $focus, $ratio);
+		if ($height != 0 and (int)($width / $oAspect) > $height) return $this->doCrop($img, (int)$width, (int)$height, $safezone, $focus, $ratio);
 
 		return $this->saveImage($target, $img, $jpegQuality);
 	}
@@ -58,7 +60,7 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 
 	public function scale(int $width, int $height, string $source, string $target, int|null $jpegQuality): bool {
 		if (is_null($img = $this->loadImage($source))) return false;
-		$img = $this->doResize($img, $width, $height);
+		$img = $this->doResize($img, (int)$width, (int)$height);
 		return $this->saveImage($target, $img, $jpegQuality);
 	}
 
@@ -89,15 +91,17 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		};
 		if ($img === null) return null;
 
-		$exif = @exif_read_data($file);
-		if (!empty($exif['Orientation'])) {
-			$deg = match ($exif["Orientation"]) {
-				8 => 90,
-				3 => 180,
-				6 => -90,
-				default => 0
-			};
-			if($deg !== 0) $img = imagerotate($img, $deg, 0);
+		if(exif_imagetype($file) === IMAGETYPE_JPEG) {
+			$exif = @exif_read_data($file);
+			if (!empty($exif['Orientation'])) {
+				$deg = match ($exif["Orientation"]) {
+					8 => 90,
+					3 => 180,
+					6 => -90,
+					default => 0
+				};
+				if ($deg !== 0) $img = imagerotate($img, $deg, 0);
+			}
 		}
 		return $img;
 	}
