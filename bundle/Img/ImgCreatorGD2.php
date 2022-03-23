@@ -63,12 +63,7 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 	}
 
 	private function loadImage(string $source): \GdImage|null {
-		return match (getimagesize($source)['2']) {
-			1 => imagecreatefromgif($source),
-			2 => imagecreatefromjpeg($source),
-			3 => imagecreatefrompng($source),
-			default => null
-		};
+		return $this->prepareOrientation($source);
 	}
 
 	private function saveImage(string $target, \GdImage $img, int|null $jpegQuality): bool {
@@ -82,6 +77,29 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		};
 	}
 
+	private function prepareOrientation(string $file): \GdImage|null {
+		$img = match (exif_imagetype($file)) {
+			IMAGETYPE_GIF => imagecreatefromgif($file),
+			IMAGETYPE_JPEG => imagecreatefromjpeg($file),
+			IMAGETYPE_PNG => imagecreatefrompng($file),
+			IMAGETYPE_WEBP => imagecreatefromwebp($file),
+			default => null
+		};
+		if ($img === null) return null;
+
+		$exif = exif_read_data($file);
+		if (!empty($exif['Orientation'])) {
+			$deg = match ($exif["Orientation"]) {
+				8 => 90,
+				3 => 180,
+				6 => -90,
+				default => 0
+			};
+			if($deg !== 0) $img = imagerotate($img, $deg, 0);
+		}
+		return $img;
+	}
+
 	private function doResize($img, int $width, int $height): \GdImage|bool {
 		$newImg = imagecreatetruecolor($width, $height);
 		$oWidth = imagesx($img);
@@ -91,7 +109,7 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		imagedestroy($img);
 		return $newImg;
 	}
-	
+
 	private function doCrop($img, int $width, int $height, array|null $safezone, array|null $focus, float $ratio): \GdImage|bool {
 
 		$oWidth = imagesx($img);

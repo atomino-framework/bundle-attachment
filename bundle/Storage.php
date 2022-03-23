@@ -7,6 +7,7 @@ use JetBrains\PhpStorm\Pure;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use VRia\Utils\NoDiacritic;
+use function Atomino\debug;
 
 /**
  * @property-read string $path
@@ -122,7 +123,7 @@ class Storage implements \JsonSerializable {
 			$this->begin();
 			foreach ($this->collections as $collection) $collection->remove($filename);
 			unset($this->attachments[$filename]);
-			unlink($this->path . $filename);
+			if(file_exists($this->path . $filename))unlink($this->path . $filename);
 			$this->commit();
 		}
 	}
