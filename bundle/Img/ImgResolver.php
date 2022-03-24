@@ -9,6 +9,7 @@ class ImgResolver {
 	public function __construct(private ImgCreatorInterface $creator, private AttachmentConfig $attachmentConfig) { }
 
 	public function resolve(string $url): bool {
+
 		if (!is_dir($this->attachmentConfig["img.path"])) mkdir($this->attachmentConfig["img.path"], 0777, true);
 
 		$uri = explode('/', $url);
