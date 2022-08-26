@@ -42,9 +42,8 @@ class ImgCreatorGD2 implements ImgCreatorInterface {
 		$oAspect = imagesx($img) / imagesy($img);
 		$ratio = imagesx($img) / $width;
 
-		$this->doResize($img, $width, (int)($width / $oAspect));
-		if ($height != 0 and (int)($width / $oAspect) > $height) return $this->doCrop($img, (int)$width, (int)$height, $safezone, $focus, $ratio);
-
+		$img = $this->doResize($img, $width, (int)($width / $oAspect));
+		if ($height != 0 and (int)($width / $oAspect) > $height) $img = $this->doCrop($img, (int)$width, (int)$height, $safezone, $focus, $ratio);
 		return $this->saveImage($target, $img, $jpegQuality);
 	}
 
